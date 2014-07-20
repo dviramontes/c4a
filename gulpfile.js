@@ -97,7 +97,7 @@ gulp.task('serve', ['connect', 'styles'], function () {
 });
 
 // inject bower components
-gulp.task('wiredep', function () {
+gulp.task('wire', function () {
     var wiredep = require('wiredep').stream;
 
     gulp.src('app/styles/*.scss')

@@ -1,3 +1,10 @@
+// overwrites
+
+li.active a{
+  color:#000 !important;
+  background: #EEE !important;
+}
+
 $icon-font-path: "../bower_components/bootstrap-sass-official/vendor/assets/fonts/bootstrap/";
 
 // bower:scss
