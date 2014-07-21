@@ -6,6 +6,12 @@ var browserSync = require('browser-sync');
 
 // load plugins
 var $ = require('gulp-load-plugins')();
+var deploy = require("gulp-gh-pages");
+
+gulp.task('deploy', function () {
+	gulp.src("./dist/**/*")
+		.pipe(deploy());
+});
 
 gulp.task('styles', function () {
     return gulp.src('app/styles/main.scss')
