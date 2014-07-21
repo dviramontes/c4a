@@ -74,14 +74,15 @@ $(function(){
 			.attr('class','viz')
 			.attr('width', width)
 			.attr('height', height)
-			.style('background', '#ccc')
+			//.style('background', '#ccc')
 
 		// shortcuts
 		var svg = d3.select('svg')
 		var maxc = maxVioletionsCategory.count;
+		var minc = minVioletionsCategory.count;
 
 		var scale = d3.scale.linear()
-			.domain([minVioletionsCategory.count,maxVioletionsCategory.count])
+			.domain([minc,maxc])
 			.range([0,width - 50])
 
 		var axis = d3.svg.axis()
@@ -93,7 +94,7 @@ $(function(){
 			.attr('class','axis')
 
 		var gBars  = svg.append('g')
-			.attr('class','bar')
+			.attr('class','bars')
 
 		axis(gAxis);
 
@@ -122,41 +123,82 @@ $(function(){
 				'stroke':"#000"
 			})
 
-		// histogram
+		// generate scales for bars
+		var barScales = []
+		_.each(violations, function(e,i){
+			var _scale = d3.scale.linear()
+				.domain([minc,maxc])
+				.range([10, e.count])
+			//console.log(_scale.range())
+			barScales.push(_scale);
+		})
+
+
+
 		var hist = d3.layout.histogram()
-			.value(function(d,i){
-				//console.log(d,i)
-				return d.count
-			})
-			.range([0,totalViolations])
-			.bins(scale.ticks(10));
+			.value(function(d) { return d.count })
+			.range([0, maxc])
+			.bins(9);
 
-		var layout = hist(violations)
+		var layout = hist(violations);
+		console.log("histogram:", layout)
 
-		//console.log(layout)
-
-		gBars
-			.attr('transform', 'translate(250,250)')
-			.attr('transform',function(){
-				return "rotate(0)";
-			})
-
-		gBars.selectAll('rect')
+		svg.selectAll("rect")
 			.data(layout)
-			.enter()
-			.append('rect')
+			.enter().append("rect")
 			.attr({
-				x : function(d,i){
-					return 150 + i * 35
+				x: function(d,i) {
+					return 150 + i * 30
 				},
-				y : 50,
-				width : 20,
-				height: function(d,i){
-//					console.log(d,i)
+				y: 50,
+				width: 20,
+				height: function(d,i) {
+					console.log(d)
 					return 20 * d.length
 				}
 			})
 
+
+		// generate brushes
+//		_.each(barScales, function(e,i) {
+//			console.log(e)
+//			var index = i;
+//			var gBrush = svg.append('g')
+//				.attr('class','bar' + i)
+//
+//			var _scale = e
+//			console.log(_scale.range())
+//			//console.log(e.count, i)
+//			var _brush = d3.svg.brush()
+//			_brush.x(_scale)
+//			_brush.extent([minc,maxc])
+//
+//			_brush(gBrush)
+//
+//			gBrush.selectAll('rect')
+//				.data(violations, function(d){
+//					return d
+//				})
+//				.enter()
+//				.append('rect')
+//
+//
+//			gBrush.selectAll('rect')
+//				.attr('height', 30)
+//			gBrush.selectAll('.background')
+//				.style({fill:"red", visibility:"visible"})
+//			gBrush.selectAll('.extent')
+//				.style({fill:"blue", visibility:"visible"})
+//			gBrush.selectAll('.resize rect')
+//				.style({fill:"green", visibility:"visible"})
+//			gBrush
+//				.attr('transform','translate(25,50)')
+//				// stack transform method
+//				.attr("transform", function (d, i) {
+//					return this.getAttribute("transform") + "scale(0.75)" + "translate(" + 0 + "," + index * 35 + ")"
+//				})
+//
+//		})
 
 
 
