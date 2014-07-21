@@ -1,56 +1,61 @@
-$(function(){
+$(function () {
 
 	// DONE : load .csv data
 	// DONE : # of violentions in each category
-	// TODO : draw histogram with category count as y axis
-	// TODO : draw histogram with category time as x axis
+	// TODO : draw bar with category count as x axis
+	// TODO : on :hover event for displaying last and earliest event
 
 	// uses TABLETOP.JS to serve data from google spreadsheets
 	var spreadSheetUrl = "https://docs.google.com/spreadsheets/d/1gfPjLfIJHXSH5plx-FgThng0S1t9JKIfujm_9KK-V5w/pubhtml"
 
 	function init() {
-		Tabletop.init( { key: spreadSheetUrl,
+		Tabletop.init({ key: spreadSheetUrl,
 			callback: tableTopCallback,
-			simpleSheet: true } )
+			simpleSheet: true })
 	}
 
-	function draw(data){
+	function draw(data) {
 
-		//console.log(data)
+		console.log(data)
 
-		var categories = _.pluck(data,'violationcategory');
+		var categories = _.pluck(data, 'violationcategory');
+		//var oldest = _.pluck(data,'violationcategory');
+		//var latest = _.pluck(data,'violationcategory');
 		var uniqueCategories = _.unique(categories);
-		var violations= []
+		var violations = []
 
 		// init violations Object
-		_.each(uniqueCategories, function(e){
+		_.each(uniqueCategories, function (e) {
 			return violations.push(new Object({
 				"name": e,
-				"count": 0
+				"count": 0,
+				"earliest": new Date,
+				"latest": new Date
 
 			}))
 		})
 
-		_.each(categories, function(cat){
-			_.each(uniqueCategories, function(unique){
+		_.each(categories, function (cat) {
+			_.each(uniqueCategories, function (unique) {
 				var match
-				if(cat === unique){
+				if (cat === unique) {
 					match = cat;
-					_.find(violations,{'name': match}).count += 1;
+					_.find(violations, {'name': match}).count += 1;
 				}
 			})
 		})
 
-		var totalViolations = _.reduce(violations,function(sum, obj){
-			return obj.count +  sum;;
+		var totalViolations = _.reduce(violations, function (sum, obj) {
+			return obj.count + sum;
+			;
 		}, 0)
 
-		var maxVioletionsCategory  = _.max(violations,function(cat) {
-			console.info(cat.name + " :: " + cat.count)
+		var maxVioletionsCategory = _.max(violations, function (cat) {
+			//console.info(cat.name + " :: " + cat.count)
 			return cat.count
 		});
 
-		var minVioletionsCategory  = _.min(violations,function(cat) {
+		var minVioletionsCategory = _.min(violations, function (cat) {
 			return cat.count
 		});
 
@@ -59,10 +64,10 @@ $(function(){
 		//console.log("unique violations ::" + uniqueCategories)
 		//console.log("violations :: " + violations.length)
 		//console.dir(violations)
-		//console.log('Max violetions category', maxVioletionsCategory.name, " with " + maxVioletionsCategory.count )
+		//console.log('Max violetions category', maxVioletionsCategory.name, " with " + maxVioletionsCategory.count)
 
 		// assert that total violation obj.count is equal to data.length
-		console.assert(categories.length == totalViolations, "watch out, totals do not addup!" )
+		console.assert(categories.length == totalViolations, "watch out, totals do not addup!")
 
 		var width = 500,
 			height = 380;
@@ -71,10 +76,10 @@ $(function(){
 		// setup svg
 		d3.select('.jumbotron')
 			.append('svg')
-			.attr('class','viz')
+			.attr('class', 'viz')
 			.attr('width', width)
 			.attr('height', height)
-			//.style('background', '#ccc')
+		//.style('background', '#ccc')
 
 		// shortcuts
 		var svg = d3.select('svg')
@@ -82,25 +87,25 @@ $(function(){
 		var minc = minVioletionsCategory.count;
 
 		var scale = d3.scale.linear()
-			.domain([minc,maxc])
-			.range([0,width - 50])
+			.domain([1, 200])
+			.range([1,  390])
 
 		var axis = d3.svg.axis()
 			.scale(scale)
 			.orient('top')
-			.ticks(7)
+			.ticks(6)
 
-		var gAxis  = svg.append('g')
-			.attr('class','axis')
+		var gAxis = svg.append('g')
+			.attr('class', 'axis')
 
-		var gBars  = svg.append('g')
-			.attr('class','bars')
+		var gBars = svg.append('g')
+			.attr('class', 'bars')
 
 		axis(gAxis);
 
 		// scale label
 		gAxis.append('text')
-			.attr('class','xlabel')
+			.attr('class', 'xlabel')
 			.attr("class", "x label")
 			.attr("text-anchor", "end")
 			.attr("x", 250)
@@ -114,92 +119,101 @@ $(function(){
 		// scale line
 		gAxis.selectAll('path')
 			.style({
-				'fill':'none',
-				'stroke':'#000'
+				'fill': 'none',
+				'stroke': '#000'
 			})
 		// scale ticks
 		gAxis.selectAll('line')
 			.style({
-				'stroke':"#000"
+				'stroke': "#000"
 			})
 
-		// generate scales for bars
-		var barScales = []
-		_.each(violations, function(e,i){
-			var _scale = d3.scale.linear()
-				.domain([minc,maxc])
-				.range([10, e.count])
-			//console.log(_scale.range())
-			barScales.push(_scale);
-		})
+		var x, y, chart;
+
+		svg.append('g')
+			.attr('class', 'chart')
+
+		svg.append('g')
+			.attr('class', 'textField')
+
+		var textField = d3.select('g.textField')
+			.append('text')
+			.text('test')
+
+		chart = d3.select('g.chart')
 
 
+		chart
+			.attr('transform', 'translate(25,50)')
 
-		var hist = d3.layout.histogram()
-			.value(function(d) { return d.count })
-			.range([0, maxc])
-			.bins(9);
+		var color = d3.scale.linear()
+			.domain([0, violations.length])
+			.range(["orange", "red"]);
 
-		var layout = hist(violations);
-		console.log("histogram:", layout)
-
-		svg.selectAll("rect")
-			.data(layout)
-			.enter().append("rect")
-			.attr({
-				x: function(d,i) {
-					return 150 + i * 30
-				},
-				y: 50,
-				width: 20,
-				height: function(d,i) {
-					console.log(d)
-					return 20 * d.length
-				}
+		chart.selectAll("rect")
+			.data(violations)
+			.enter()
+			.append("rect")
+			.transition()
+			.attr("x", 0)
+			.attr("y", function (d, i) {
+				return i * 30 + 1
+			})
+			.attr("width", 0)
+			.transition()
+			.attr("width", function (d) {
+				return d.count * 2;
+			})
+			.attr("height", 30)
+			.attr('fill', function (d, i) {
+				return color(i)
 			})
 
 
-		// generate brushes
-//		_.each(barScales, function(e,i) {
-//			console.log(e)
-//			var index = i;
-//			var gBrush = svg.append('g')
-//				.attr('class','bar' + i)
-//
-//			var _scale = e
-//			console.log(_scale.range())
-//			//console.log(e.count, i)
-//			var _brush = d3.svg.brush()
-//			_brush.x(_scale)
-//			_brush.extent([minc,maxc])
-//
-//			_brush(gBrush)
-//
-//			gBrush.selectAll('rect')
-//				.data(violations, function(d){
-//					return d
-//				})
-//				.enter()
-//				.append('rect')
-//
-//
-//			gBrush.selectAll('rect')
-//				.attr('height', 30)
-//			gBrush.selectAll('.background')
-//				.style({fill:"red", visibility:"visible"})
-//			gBrush.selectAll('.extent')
-//				.style({fill:"blue", visibility:"visible"})
-//			gBrush.selectAll('.resize rect')
-//				.style({fill:"green", visibility:"visible"})
-//			gBrush
-//				.attr('transform','translate(25,50)')
-//				// stack transform method
-//				.attr("transform", function (d, i) {
-//					return this.getAttribute("transform") + "scale(0.75)" + "translate(" + 0 + "," + index * 35 + ")"
-//				})
-//
-//		})
+		chart.append('g')
+			.attr('class', 'names')
 
+		chart.append('g')
+			.attr('class', 'count')
+
+
+		chart.select('g.names')
+			.selectAll("text")
+			.data(violations)
+			.enter().append("text")
+			.attr('class', 'name')
+			.attr("x", 0)
+			.attr("y", function (d, i) {
+				return i * 30 + 15
+			})
+			.attr("dx", 5)
+			.attr("dy", ".36em")
+			.attr("text-anchor", "left")
+			.text(function (d) {
+				return d.name
+			});
+
+
+		chart.select('g.count')
+			.selectAll('text')
+			.data(violations)
+			.enter().append("text")
+			.attr('class', 'count')
+			.attr("x", function (d, i) {
+				return d.count >= 20 ? d.count * 2 - 10 : -20
+			})
+			.attr("y", function (d, i) {
+				return i * 30 + 15
+			})
+			.attr("dx", 8)
+			.attr("dy", ".26em")
+			.attr("text-anchor", "end")
+			.text(function (d) {
+				return d.count
+			})
+			.attr('fill', function (d, i) {
+				return d.count >= 20 ? 'white' : color(i)
+			})
 
 
 	}
