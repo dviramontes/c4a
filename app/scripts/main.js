@@ -16,8 +16,6 @@ $(function () {
 
 	function draw(data) {
 
-		//console.log(data)
-
 		var categories = _.pluck(data, 'violationcategory');
 		//var dates = _.pluck(data, 'violationdate');
 		var uniqueCategories = _.unique(categories);
@@ -66,7 +64,7 @@ $(function () {
 			var _n  = row.violationcategory
 			var _t  = row['violationdate'].split(" ")[0];
 			var _d  = moment(_t)
-			//console.log(_d.unix())
+
 			_.each(uniqueCategories, function(unique,i){
 				var match;
 				if(_n === unique){
@@ -92,18 +90,17 @@ $(function () {
 		});
 
 
-		//console.log("number of unique categoies :: " + uniqueCategories.length)
+		console.log("number of unique categoies :: " + uniqueCategories.length)
 		//console.log("unique violations ::" + uniqueCategories)
-		//console.log("violations :: " + violations.length)
-		console.dir(violations)
-		//console.log('Max violetions category', maxVioletionsCategory.name, " with " + maxVioletionsCategory.count)
+		console.log("violations :: " + violations.length)
+		//console.dir(violations)
+		console.log('Max violetions category', maxVioletionsCategory.name, " with " + maxVioletionsCategory.count)
 
 		// assert that total violation obj.count is equal to data.length
-		console.assert(categories.length == totalViolations, "watch out, totals do not addup!")
+		console.assert(categories.length === totalViolations, "watch out, totals do not addup!")
 
 		var width = 500,
 			height = 380;
-
 
 		// setup svg
 		d3.select('.jumbotron')
@@ -236,7 +233,6 @@ $(function () {
 				var _dates = ["Oldest: " + e.getOldest().format(format),
 						" Latest: " + e.getLatest().format(format)]
 
-				console.log(_dates)
 				d3.select('.hoverme')
 					.transition()
 					.text(_dates)
