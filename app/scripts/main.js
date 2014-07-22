@@ -230,7 +230,7 @@ $(function () {
 				return d.name
 			})
 			.on('mouseover', function(e){
-				var format = "dddd, MMMM Do YYYY";
+				var format = "MMMM Do YYYY";
 				var _dates = ["Oldest: " + e.getOldest().format(format),
 						" Latest: " + e.getLatest().format(format)]
 				// transform text with date info
