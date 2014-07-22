@@ -215,7 +215,13 @@ $(function () {
 			.attr("text-anchor", "left")
 			.text(function (d) {
 				return d.name
-			});
+			})
+			.on('mouseover', function(){
+				d3.select('.hoverme').text('ahhh!    ')
+			})
+			.on('mouseleave', function(){
+				d3.select('.hoberme').text("Hover over violation category to view more");
+			})
 
 
 		chart.select('g.count')
