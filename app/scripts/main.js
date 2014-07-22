@@ -1,11 +1,12 @@
 $(function () {
 
-	// DONE : load .csv data
-	// DONE : # of violentions in each category
-	// DONE : draw bar with category count as x axis
-	// TODO : on :hover event for displaying last and earliest event
+	// View this visualization here : http://dviramontes.github.io/c4a/
 
-	// uses TABLETOP.JS to serve data from google spreadsheets
+	// uses TABLETOP.JS to serve data from google spreadsheets,
+	// Also assumes:
+	// lodash, d3, moment, and jQuery, oh and a modern browser
+	// with console.assert
+
 	var spreadSheetUrl = "https://docs.google.com/spreadsheets/d/1gfPjLfIJHXSH5plx-FgThng0S1t9JKIfujm_9KK-V5w/pubhtml"
 
 	function init() {
@@ -17,7 +18,6 @@ $(function () {
 	function draw(data) {
 
 		var categories = _.pluck(data, 'violationcategory');
-		//var dates = _.pluck(data, 'violationdate');
 		var uniqueCategories = _.unique(categories);
 		var violations = []
 
@@ -81,7 +81,8 @@ $(function () {
 		}, 0)
 
 		var maxVioletionsCategory = _.max(violations, function (cat) {
-			//console.info(cat.name + " :: " + cat.count)
+			// report categories
+			console.info(cat.name + " :: " + cat.count)
 			return cat.count
 		});
 
@@ -97,6 +98,7 @@ $(function () {
 		console.log('Max violetions category', maxVioletionsCategory.name, " with " + maxVioletionsCategory.count)
 
 		// assert that total violation obj.count is equal to data.length
+		// sanity check
 		console.assert(categories.length === totalViolations, "watch out, totals do not addup!")
 
 		var width = 500,
@@ -108,7 +110,6 @@ $(function () {
 			.attr('class', 'viz')
 			.attr('width', width)
 			.attr('height', height)
-		//.style('background', '#ccc')
 
 		// shortcuts
 		var svg = d3.select('svg')
@@ -140,7 +141,6 @@ $(function () {
 			.attr("y", -40)
 			.text("violations");
 
-		//var label = d3.select('.xlabel')
 
 		gAxis.attr('transform', 'translate(25,50)')
 
@@ -150,13 +150,14 @@ $(function () {
 				'fill': 'none',
 				'stroke': '#000'
 			})
+
 		// scale ticks
 		gAxis.selectAll('line')
 			.style({
 				'stroke': "#000"
 			})
 
-		var x, y, chart;
+		var chart;
 
 		svg.append('g')
 			.attr('class', 'chart')
@@ -232,7 +233,7 @@ $(function () {
 				var format = "dddd, MMMM Do YYYY";
 				var _dates = ["Oldest: " + e.getOldest().format(format),
 						" Latest: " + e.getLatest().format(format)]
-
+				// transform text with date info
 				d3.select('.hoverme')
 					.transition()
 					.text(_dates)
@@ -251,9 +252,6 @@ $(function () {
 					.attr('fill', 'black')
 					.attr("x", 100)
 					.attr("y", height - 20)
-
-
-
 			})
 
 
