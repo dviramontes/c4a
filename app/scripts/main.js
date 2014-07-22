@@ -16,25 +16,27 @@ $(function () {
 
 	function draw(data) {
 
-		console.log(data)
+		//console.log(data)
 
 		var categories = _.pluck(data, 'violationcategory');
-		//var oldest = _.pluck(data,'violationcategory');
-		//var latest = _.pluck(data,'violationcategory');
+		//var dates = _.pluck(data, 'violationdate');
 		var uniqueCategories = _.unique(categories);
 		var violations = []
 
+
+		// Violation prototype
+		var Violation = function (name, earliest, latest) {
+			this.name = name;
+			this.count = 0;
+			this.dates = [];
+		}
+
 		// init violations Object
 		_.each(uniqueCategories, function (e) {
-			return violations.push(new Object({
-				"name": e,
-				"count": 0,
-				"earliest": new Date,
-				"latest": new Date
-
-			}))
+			return violations.push(new Violation(e))
 		})
 
+		// inc cat count
 		_.each(categories, function (cat) {
 			_.each(uniqueCategories, function (unique) {
 				var match
@@ -45,9 +47,26 @@ $(function () {
 			})
 		})
 
+		// clean dates &
+		// match date to its category parent
+		_.each(data, function(row,i){
+			var _n  = row.violationcategory
+			var _t  = row['violationdate'].split(" ")[0];
+			var _d  = moment(_t)
+			//console.log(_d.unix())
+			_.each(uniqueCategories, function(unique,i){
+				var match;
+				if(_n === unique){
+					match = _n;
+					if(moment(_d).isValid()){
+						_.find(violations, {'name': match}).dates.push(_d);
+					}
+				}
+			})
+		})
+
 		var totalViolations = _.reduce(violations, function (sum, obj) {
 			return obj.count + sum;
-			;
 		}, 0)
 
 		var maxVioletionsCategory = _.max(violations, function (cat) {
@@ -88,7 +107,7 @@ $(function () {
 
 		var scale = d3.scale.linear()
 			.domain([1, 200])
-			.range([1,  390])
+			.range([1, 390])
 
 		var axis = d3.svg.axis()
 			.scale(scale)
@@ -106,7 +125,6 @@ $(function () {
 		// scale label
 		gAxis.append('text')
 			.attr('class', 'xlabel')
-			.attr("class", "x label")
 			.attr("text-anchor", "end")
 			.attr("x", 250)
 			.attr("y", -40)
@@ -136,9 +154,15 @@ $(function () {
 		svg.append('g')
 			.attr('class', 'textField')
 
-		var textField = d3.select('g.textField')
+		d3.select('g.textField')
 			.append('text')
-			.text('test')
+			.attr('class', 'hoverme')
+			.attr("text-anchor", "left")
+			.attr("x", 100)
+			.attr("y", height - 20)
+			.text("Hover over violation category to view more")
+
+		var textField = d3.select('.hoverme')
 
 		chart = d3.select('g.chart')
 
