@@ -2,7 +2,7 @@ $(function () {
 
 	// DONE : load .csv data
 	// DONE : # of violentions in each category
-	// TODO : draw bar with category count as x axis
+	// DONE : draw bar with category count as x axis
 	// TODO : on :hover event for displaying last and earliest event
 
 	// uses TABLETOP.JS to serve data from google spreadsheets
@@ -26,9 +26,22 @@ $(function () {
 
 		// Violation prototype
 		var Violation = function (name, earliest, latest) {
+			var that = this;
 			this.name = name;
 			this.count = 0;
 			this.dates = [];
+		}
+
+		Violation.prototype.getLatest = function(){
+			return _.max(this.dates,function(date){
+				return date.unix();
+			})
+		}
+
+		Violation.prototype.getOldest = function(){
+			return _.min(this.dates,function(date){
+				return date.unix();
+			})
 		}
 
 		// init violations Object
@@ -82,7 +95,7 @@ $(function () {
 		//console.log("number of unique categoies :: " + uniqueCategories.length)
 		//console.log("unique violations ::" + uniqueCategories)
 		//console.log("violations :: " + violations.length)
-		//console.dir(violations)
+		console.dir(violations)
 		//console.log('Max violetions category', maxVioletionsCategory.name, " with " + maxVioletionsCategory.count)
 
 		// assert that total violation obj.count is equal to data.length
@@ -160,6 +173,8 @@ $(function () {
 			.attr("text-anchor", "left")
 			.attr("x", 100)
 			.attr("y", height - 20)
+			.attr("dx", 5)
+			.attr("dy", ".36em")
 			.text("Hover over violation category to view more")
 
 		var textField = d3.select('.hoverme')
@@ -216,11 +231,33 @@ $(function () {
 			.text(function (d) {
 				return d.name
 			})
-			.on('mouseover', function(){
-				d3.select('.hoverme').text('ahhh!    ')
+			.on('mouseover', function(e){
+				var format = "dddd, MMMM Do YYYY";
+				var _dates = ["Oldest: " + e.getOldest().format(format),
+						" Latest: " + e.getLatest().format(format)]
+
+				console.log(_dates)
+				d3.select('.hoverme')
+					.transition()
+					.text(_dates)
+					.attr("dx", 0)
+					.attr("dy", ".30em")
+					.attr("x", 25)
+					.attr("y", height - 20)
+					.attr('fill', "blue")
 			})
-			.on('mouseleave', function(){
-				d3.select('.hoberme').text("Hover over violation category to view more");
+			.on('mouseleave', function(e){
+				// reset placeholder text
+				d3.select('.hoverme')
+					.transition()
+					.delay(200)
+					.text("Hover over violation category to view more")
+					.attr('fill', 'black')
+					.attr("x", 100)
+					.attr("y", height - 20)
+
+
+
 			})
 
 
@@ -250,7 +287,6 @@ $(function () {
 
 	function tableTopCallback(data, tabletop) {
 		console.info("Successfully processed!")
-		//console.table(data);
 		draw(data);
 	}
 
